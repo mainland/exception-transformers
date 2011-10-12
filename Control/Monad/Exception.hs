@@ -140,15 +140,12 @@ class (Monad m) => MonadException m where
                     -- raised)
             -> m a
     act `finally` sequel = do
-        a <- act `catch` \(e :: E.SomeException) -> sequel >> throw e
+        a <- act `onException` sequel
         _ <- sequel
         return a
 
 -- | If an exception is raised by the computation, then perform a final action
--- and re-raise the exception. If a short-circuiting monad transformer such as
--- ErrorT or MaybeT is used to transform a MonadException monad, then the
--- onException implementation for the transformer must guarantee that the final
--- action is also performed when any short-circuiting occurs.
+-- and re-raise the exception.
 onException :: MonadException m
             => m a -- ^ The computation to run
             -> m b -- ^ Computation to run if an exception is raised
@@ -177,9 +174,7 @@ bracket :: MonadAsyncException m
 bracket before after thing =
     mask $ \restore -> do
         a <- before
-        r <- restore (thing a) `onException` after a
-        _ <- after a
-        return r
+        restore (thing a) `finally` after a
 
 -- | A variant of 'bracket' where the return value from the first computation is
 -- not required.
