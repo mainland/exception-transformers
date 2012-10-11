@@ -1,5 +1,5 @@
 name:           exception-transformers
-version:        0.3.0.2
+version:        0.3.0.3
 cabal-version:  >= 1.10
 license:        BSD3
 license-file:   LICENSE
@@ -26,7 +26,7 @@ library
 
   build-depends:
     base         >=4   && <5,
-    stm          >=2.1 && <2.4,
+    stm          >=2.1 && <2.5,
     transformers >=0.2 && <0.4
 
   ghc-options:
