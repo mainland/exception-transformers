@@ -1,15 +1,16 @@
--- |
--- Module      :  Control.Monad.Exception
--- Copyright   :  (c) Harvard University 2008-2011
---                (c) Geoffrey Mainland 2011-2012
--- License     :  BSD-style
--- Maintainer  :  mainland@eecs.harvard.edu
-
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UnboxedTuples #-}
+{-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
+
+-- |
+-- Module      :  Control.Monad.Exception
+-- Copyright   :  (c) Harvard University 2008-2011
+--                (c) Geoffrey Mainland 2011-2014
+-- License     :  BSD-style
+-- Maintainer  :  mainland@cs.drexel.edu
 
 module Control.Monad.Exception (
     E.Exception(..),
@@ -27,7 +28,9 @@ module Control.Monad.Exception (
     liftException
   ) where
 
+#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ < 706)
 import Prelude hiding (catch)
+#endif
 
 import Control.Applicative
 import qualified Control.Exception as E (Exception(..),
@@ -50,6 +53,11 @@ import Control.Monad.Trans.Error (Error(..),
                                   ErrorT(..),
                                   mapErrorT,
                                   runErrorT)
+#if MIN_VERSION_transformers(0,4,0)
+import Control.Monad.Trans.Except (ExceptT(..),
+                                   mapExceptT,
+                                   runExceptT)
+#endif /* MIN_VERSION_transformers(0,4,0) */
 import Control.Monad.Trans.Identity (IdentityT(..),
                                      mapIdentityT,
                                      runIdentityT)
@@ -295,6 +303,16 @@ instance (MonadException m, Error e) =>
     act `finally` sequel =
         mapErrorT (\act' -> act' `finally` runErrorT sequel) act
 
+#if MIN_VERSION_transformers(0,4,0)
+instance (MonadException m) =>
+    MonadException (ExceptT e' m) where
+    throw       = lift . throw
+    m `catch` h = mapExceptT (\m' -> m' `catch` \e -> runExceptT (h e)) m
+
+    act `finally` sequel =
+        mapExceptT (\act' -> act' `finally` runExceptT sequel) act
+#endif /* MIN_VERSION_transformers(0,4,0) */
+
 instance (MonadException m) =>
     MonadException (IdentityT m) where
     throw       = lift . throw
@@ -363,6 +381,13 @@ instance (MonadAsyncException m, Error e) =>
     MonadAsyncException (ErrorT e m) where
     mask act = ErrorT $ mask $ \restore ->
                runErrorT $ act (mapErrorT restore)
+
+#if MIN_VERSION_transformers(0,4,0)
+instance (MonadAsyncException m) =>
+    MonadAsyncException (ExceptT e' m) where
+    mask act = ExceptT $ mask $ \restore ->
+               runExceptT $ act (mapExceptT restore)
+#endif /* MIN_VERSION_transformers(0,4,0) */
 
 instance (MonadAsyncException m) =>
     MonadAsyncException (IdentityT m) where
