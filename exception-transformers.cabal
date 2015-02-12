@@ -25,9 +25,10 @@ library
     Control.Monad.Exception
 
   build-depends:
-    base         >= 4   && < 5,
-    stm          >= 2.1 && < 2.5,
-    transformers >= 0.2 && < 0.5
+    base                >= 4   && < 5,
+    stm                 >= 2.1 && < 2.5,
+    transformers        >= 0.2 && < 0.5,
+    transformers-compat >= 0.3 && < 0.4
 
   ghc-options:
     -Wall
@@ -44,7 +45,8 @@ test-suite unit
     exception-transformers >= 0.3 && < 0.5,
     test-framework         >= 0.8 && < 0.9,
     test-framework-hunit   >= 0.3 && < 0.4,
-    transformers           >= 0.2 && < 0.5
+    transformers           >= 0.2 && < 0.5,
+    transformers-compat    >= 0.3 && < 0.4
 
   ghc-options:
     -Wall

@@ -53,11 +53,9 @@ import Control.Monad.Trans.Error (Error(..),
                                   ErrorT(..),
                                   mapErrorT,
                                   runErrorT)
-#if MIN_VERSION_transformers(0,4,0)
 import Control.Monad.Trans.Except (ExceptT(..),
                                    mapExceptT,
                                    runExceptT)
-#endif /* MIN_VERSION_transformers(0,4,0) */
 import Control.Monad.Trans.Identity (IdentityT(..),
                                      mapIdentityT,
                                      runIdentityT)
@@ -303,7 +301,6 @@ instance (MonadException m, Error e) =>
     act `finally` sequel =
         mapErrorT (\act' -> act' `finally` runErrorT sequel) act
 
-#if MIN_VERSION_transformers(0,4,0)
 instance (MonadException m) =>
     MonadException (ExceptT e' m) where
     throw       = lift . throw
@@ -311,7 +308,6 @@ instance (MonadException m) =>
 
     act `finally` sequel =
         mapExceptT (\act' -> act' `finally` runExceptT sequel) act
-#endif /* MIN_VERSION_transformers(0,4,0) */
 
 instance (MonadException m) =>
     MonadException (IdentityT m) where
@@ -382,12 +378,10 @@ instance (MonadAsyncException m, Error e) =>
     mask act = ErrorT $ mask $ \restore ->
                runErrorT $ act (mapErrorT restore)
 
-#if MIN_VERSION_transformers(0,4,0)
 instance (MonadAsyncException m) =>
     MonadAsyncException (ExceptT e' m) where
     mask act = ExceptT $ mask $ \restore ->
                runExceptT $ act (mapExceptT restore)
-#endif /* MIN_VERSION_transformers(0,4,0) */
 
 instance (MonadAsyncException m) =>
     MonadAsyncException (IdentityT m) where
