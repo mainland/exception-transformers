@@ -16,9 +16,7 @@ import Prelude hiding (catch)
 
 import Control.Monad.Exception
 import Control.Monad.Trans.Error
-#if MIN_VERSION_transformers(0,4,0)
 import Control.Monad.Trans.Except
-#endif /* MIN_VERSION_transformers(0,4,0) */
 import Control.Monad.IO.Class
 import Data.IORef
 import Test.Framework
@@ -61,7 +59,6 @@ errorTests = testGroup "ErrorT tests"
 
 exceptTests :: Test
 exceptTests = testGroup "ExceptT tests"
-#if MIN_VERSION_transformers(0,4,0)
     [testCase (conl ++ " " ++ whatl) (mkExceptTest con what) | (conl, con) <- cons, (whatl, what) <- whats]
   where
     whats :: [(String, ExceptT String IO ())]
@@ -85,6 +82,3 @@ exceptTests = testGroup "ExceptT tests"
       where
         expected :: String
         expected = "sequel called"
-#else /* !MIN_VERSION_transformers(0,4,0) */
-    []
-#endif /* !MIN_VERSION_transformers(0,4,0) */
