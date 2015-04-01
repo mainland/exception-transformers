@@ -8,7 +8,7 @@ copyright:      (c) 2009-2010 Harvard University
 author:         Geoffrey Mainland <mainland@cs.drexel.edu>
 maintainer:     Geoffrey Mainland <mainland@cs.drexel.edu>
 stability:      alpha
-homepage:       http://www.cs.drexel.edu/~mainland/
+bug-reports:    https://github.com/mainland/exception-transformers/issues
 category:       Control, Monad, Error Handling, Failure
 synopsis:       Type classes and monads for unchecked extensible exceptions.
 description:    This package provides type classes, a monad and a monad
