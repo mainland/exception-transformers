@@ -5,8 +5,8 @@ license:        BSD3
 license-file:   LICENSE
 copyright:      (c) 2009-2010 Harvard University
 		(c) 2011-2016 Geoffrey Mainland
-author:         Geoffrey Mainland <mainland@cs.drexel.edu>
-maintainer:     Geoffrey Mainland <mainland@cs.drexel.edu>
+author:         Geoffrey Mainland <mainland@drexel.edu>
+maintainer:     Geoffrey Mainland <mainland@drexel.edu>
 stability:      alpha
 bug-reports:    https://github.com/mainland/exception-transformers/issues
 category:       Control, Monad, Error Handling, Failure
