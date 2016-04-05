@@ -15,6 +15,7 @@ description:    This package provides type classes, a monad and a monad
                 transformer that support unchecked extensible exceptions as
                 well as asynchronous exceptions. It is compatible with
                 the transformers package.
+tested-with:    GHC==7.4.2, GHC==7.6.3, GHC==7.8.3, GHC==7.10.3, GHC==8.0.1
 
 build-type:     Simple
 
