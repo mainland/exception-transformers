@@ -8,7 +8,7 @@
 -- |
 -- Module      :  Control.Monad.Exception
 -- Copyright   :  (c) Harvard University 2008-2011
---                (c) Geoffrey Mainland 2011-2014
+--                (c) Geoffrey Mainland 2011-2016
 -- License     :  BSD-style
 -- Maintainer  :  mainland@cs.drexel.edu
 
@@ -28,9 +28,9 @@ module Control.Monad.Exception (
     liftException
   ) where
 
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ < 706)
+#if !MIN_VERSION_base(4,6,0)
 import Prelude hiding (catch)
-#endif
+#endif /*!MIN_VERSION_base(4,6,0) */
 
 import Control.Applicative
 import qualified Control.Exception as E (Exception(..),
@@ -38,13 +38,7 @@ import qualified Control.Exception as E (Exception(..),
                                          catch,
                                          throw,
                                          finally)
-#if __GLASGOW_HASKELL__ >= 700
 import qualified Control.Exception as E (mask)
-#else /* __GLASGOW_HASKELL__ < 700 */
-import qualified Control.Exception as E (block,
-                                         blocked,
-                                         unblock)
-#endif /* __GLASGOW_HASKELL__ < 700 */
 import Control.Monad (MonadPlus(..))
 import Control.Monad.Fix (MonadFix(..))
 import Control.Monad.IO.Class (MonadIO(..))
@@ -85,18 +79,12 @@ import Control.Monad.Trans.Writer.Lazy as Lazy (WriterT(..),
 import Control.Monad.Trans.Writer.Strict as Strict (WriterT(..),
                                                     mapWriterT,
                                                     runWriterT)
+#if !MIN_VERSION_base(4,8,0)
 import Data.Monoid (Monoid)
-#if __GLASGOW_HASKELL__ >= 700
+#endif /* !MIN_VERSION_base(4,8,0) */
 import GHC.Conc.Sync (STM(..),
                       catchSTM,
                       throwSTM)
-#else /* __GLASGOW_HASKELL__ < 700 */
-import GHC.Base (RealWorld,
-                 State#,
-                 catchSTM#,
-                 raiseIO#)
-import GHC.Conc (STM(..))
-#endif /* __GLASGOW_HASKELL__ < 700 */
 
 class (Monad m) => MonadException m where
     -- | Throw an exception.
@@ -273,21 +261,6 @@ instance MonadAsyncException IO where
 instance MonadException STM where
     catch = catchSTM
     throw = throwSTM
-
-#if __GLASGOW_HASKELL__ < 700
-unSTM :: STM a -> (State# RealWorld -> (# State# RealWorld, a #))
-unSTM (STM a) = a
-
-catchSTM :: E.Exception e => STM a -> (e -> STM a) -> STM a
-catchSTM (STM m) handler = STM $ catchSTM# m handler'
-  where
-    handler' e = case E.fromException e of
-                   Just e' -> unSTM (handler e')
-                   Nothing -> raiseIO# e
-
-throwSTM :: E.Exception e => e -> STM a
-throwSTM e = STM $ raiseIO# (E.toException e)
-#endif /* __GLASGOW_HASKELL__ < 700 */
 
 --
 -- MonadException instances for transformers.
