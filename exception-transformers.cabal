@@ -4,7 +4,7 @@ cabal-version:  >= 1.10
 license:        BSD3
 license-file:   LICENSE
 copyright:      (c) 2009-2010 Harvard University
-                (c) 2011-2017 Geoffrey Mainland
+                (c) 2011-2018 Geoffrey Mainland
 author:         Geoffrey Mainland <mainland@drexel.edu>
 maintainer:     Geoffrey Mainland <mainland@drexel.edu>
 stability:      alpha
@@ -15,7 +15,7 @@ description:    This package provides type classes, a monad and a monad
                 transformer that support unchecked extensible exceptions as
                 well as asynchronous exceptions. It is compatible with
                 the transformers package.
-tested-with:    GHC==7.4.2, GHC==7.6.3, GHC==7.8.3, GHC==7.10.3, GHC==8.0.2, GHC==8.2.1
+tested-with:    GHC==7.4.2, GHC==7.6.3, GHC==7.8.3, GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.1
 
 build-type:     Simple
 
