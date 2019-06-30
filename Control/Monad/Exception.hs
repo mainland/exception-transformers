@@ -184,7 +184,12 @@ instance (Monad m) => Monad (ExceptionT m) where
         case a of
           Left l  -> return (Left l)
           Right r -> runExceptionT (k r)
+          
+#if MIN_VERSION_base(4,13,0)
+instance (Monad m) => MonadFail (ExceptionT m) where
+#endif
     fail msg = ExceptionT $ return (Left (E.toException (userError msg)))
+
 
 instance (Monad m) => MonadPlus (ExceptionT m) where
     mzero       = ExceptionT $ return (Left (E.toException (userError "")))
