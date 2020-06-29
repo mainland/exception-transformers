@@ -174,12 +174,30 @@ instance MonadTrans ExceptionT where
         a <- m
         return (Right a)
 
+instance (Functor m, Monad m) => Applicative (ExceptionT m) where
+    pure a = ExceptionT $ return (Right a)
+
+    f <*> v = ExceptionT $ do
+        mf <- runExceptionT f
+        case mf of
+            Left  e -> return (Left e)
+            Right k -> do
+                mv <- runExceptionT v
+                case mv of
+                    Left  e -> return (Left e)
+                    Right x -> return (Right (k x))
+
 instance (Functor m) => Functor (ExceptionT m) where
     fmap f = ExceptionT . fmap (fmap f) . runExceptionT
 
 instance (Monad m) => Monad (ExceptionT m) where
+#if MIN_VERSION_base(4,8,0)
+    return = pure
+#else /* !MIN_VERSION_base(4,8,0) */
     return a = ExceptionT $ return (Right a)
-    m >>= k  = ExceptionT $ do
+#endif /* !MIN_VERSION_base(4,8,0) */
+
+    m >>= k = ExceptionT $ do
         a <- runExceptionT m
         case a of
           Left l  -> return (Left l)
@@ -197,18 +215,6 @@ instance (Monad m) => MonadPlus (ExceptionT m) where
         case a of
           Left _  -> runExceptionT n
           Right r -> return (Right r)
-
-instance (Functor m, Monad m) => Applicative (ExceptionT m) where
-    pure a  = ExceptionT $ return (Right a)
-    f <*> v = ExceptionT $ do
-        mf <- runExceptionT f
-        case mf of
-            Left  e -> return (Left e)
-            Right k -> do
-                mv <- runExceptionT v
-                case mv of
-                    Left  e -> return (Left e)
-                    Right x -> return (Right (k x))
 
 instance (Functor m, Monad m) => Alternative (ExceptionT m) where
     empty = mzero
