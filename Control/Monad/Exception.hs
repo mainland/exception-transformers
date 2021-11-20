@@ -8,7 +8,7 @@
 -- |
 -- Module      :  Control.Monad.Exception
 -- Copyright   :  (c) Harvard University 2008-2011
---                (c) Geoffrey Mainland 2011-2016
+--                (c) Geoffrey Mainland 2011-2021
 -- License     :  BSD-style
 -- Maintainer  :  mainland@cs.drexel.edu
 
@@ -49,19 +49,24 @@ import qualified Control.Monad.Fail as Fail
 import Control.Monad.Fix (MonadFix(..))
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Trans.Class (MonadTrans(..))
+
+#if !MIN_VERSION_transformers(0,6,0)
 import Control.Monad.Trans.Error (Error(..),
                                   ErrorT(..),
                                   mapErrorT,
                                   runErrorT)
+#endif /* !MIN_VERSION_transformers(0,6,0) */
 import Control.Monad.Trans.Except (ExceptT(..),
                                    mapExceptT,
                                    runExceptT)
 import Control.Monad.Trans.Identity (IdentityT(..),
                                      mapIdentityT,
                                      runIdentityT)
+#if !MIN_VERSION_transformers(0,6,0)
 import Control.Monad.Trans.List (ListT(..),
                                  mapListT,
                                  runListT)
+#endif /* !MIN_VERSION_transformers(0,6,0) */
 import Control.Monad.Trans.Maybe (MaybeT(..),
                                   mapMaybeT,
                                   runMaybeT)
@@ -284,6 +289,7 @@ instance MonadException STM where
 -- MonadException instances for transformers.
 --
 
+#if !MIN_VERSION_transformers(0,6,0)
 instance (MonadException m, Error e) =>
     MonadException (ErrorT e m) where
     throw       = lift . throw
@@ -291,6 +297,7 @@ instance (MonadException m, Error e) =>
 
     act `finally` sequel =
         mapErrorT (\act' -> act' `finally` runErrorT sequel) act
+#endif /* !MIN_VERSION_transformers(0,6,0) */
 
 instance (MonadException m) =>
     MonadException (ExceptT e' m) where
@@ -305,10 +312,12 @@ instance (MonadException m) =>
     throw       = lift . throw
     m `catch` h = mapIdentityT (\m' -> m' `catch` \e -> runIdentityT (h e)) m
 
+#if !MIN_VERSION_transformers(0,6,0)
 instance MonadException m =>
     MonadException (ListT m) where
     throw       = lift . throw
     m `catch` h = mapListT (\m' -> m' `catch` \e -> runListT (h e)) m
+#endif /* !MIN_VERSION_transformers(0,6,0) */
 
 instance (MonadException m) =>
     MonadException (MaybeT m) where
@@ -364,10 +373,12 @@ instance (Monoid w, MonadException m) =>
 -- MonadAsyncException instances for transformers.
 --
 
+#if !MIN_VERSION_transformers(0,6,0)
 instance (MonadAsyncException m, Error e) =>
     MonadAsyncException (ErrorT e m) where
     mask act = ErrorT $ mask $ \restore ->
                runErrorT $ act (mapErrorT restore)
+#endif /* !MIN_VERSION_transformers(0,6,0) */
 
 instance (MonadAsyncException m) =>
     MonadAsyncException (ExceptT e' m) where
@@ -379,10 +390,12 @@ instance (MonadAsyncException m) =>
     mask act = IdentityT $ mask $ \restore ->
                runIdentityT $ act (mapIdentityT restore)
 
+#if !MIN_VERSION_transformers(0,6,0)
 instance (MonadAsyncException m) =>
     MonadAsyncException (ListT m) where
     mask act = ListT $ mask $ \restore ->
                runListT $ act (mapListT restore)
+#endif /* !MIN_VERSION_transformers(0,6,0) */
 
 instance (MonadAsyncException m) =>
     MonadAsyncException (MaybeT m) where
