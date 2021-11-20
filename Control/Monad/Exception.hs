@@ -40,6 +40,12 @@ import qualified Control.Exception as E (Exception(..),
                                          finally)
 import qualified Control.Exception as E (mask)
 import Control.Monad (MonadPlus(..))
+#if !MIN_VERSION_base(4,13,0)
+import Control.Monad.Fail
+#endif /* !MIN_VERSION_base(4,13,0) */
+#if !MIN_VERSION_base(4,11,0)
+import qualified Control.Monad.Fail as Fail
+#endif /* !MIN_VERSION_base(4,11,0) */
 import Control.Monad.Fix (MonadFix(..))
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Trans.Class (MonadTrans(..))
@@ -203,9 +209,11 @@ instance (Monad m) => Monad (ExceptionT m) where
           Left l  -> return (Left l)
           Right r -> runExceptionT (k r)
 
-#if MIN_VERSION_base(4,13,0)
+#if !MIN_VERSION_base(4,11,0)
+    fail = Fail.fail
+#endif /* !MIN_VERSION_base(4,11,0) */
+
 instance (Monad m) => MonadFail (ExceptionT m) where
-#endif
     fail msg = ExceptionT $ return (Left (E.toException (userError msg)))
 
 instance (Monad m) => MonadPlus (ExceptionT m) where
