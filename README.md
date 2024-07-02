@@ -1,0 +1,3 @@
+# The `exception-transformers` Package  [![Hackage](https://img.shields.io/hackage/v/exception-transformers.svg)](https://hackage.haskell.org/package/exception-transformers) [![Actions Status: haskell-ci](https://github.com/mainland/exception-transformers/actions/workflows/haskell-ci.yml/badge.svg)](https://github.com/mainland/exception-transformers/actions?query=workflow%3Ahaskell-ci)
+
+Provides type classes, a monad and a monad transformer that support unchecked extensible exceptions as well as asynchronous exceptions. It is compatible with the [`transformers`](https://hackage.haskell.org/package/transformers) package.
