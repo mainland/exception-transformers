@@ -28,10 +28,6 @@ module Control.Monad.Exception (
     liftException
   ) where
 
-#if !MIN_VERSION_base(4,6,0)
-import Prelude hiding (catch)
-#endif /*!MIN_VERSION_base(4,6,0) */
-
 import Control.Applicative
 import qualified Control.Exception as E (Exception(..),
                                          SomeException,
@@ -40,12 +36,7 @@ import qualified Control.Exception as E (Exception(..),
                                          finally)
 import qualified Control.Exception as E (mask)
 import Control.Monad (MonadPlus(..))
-#if !MIN_VERSION_base(4,13,0)
-import Control.Monad.Fail
-#endif /* !MIN_VERSION_base(4,13,0) */
-#if !MIN_VERSION_base(4,11,0)
 import qualified Control.Monad.Fail as Fail
-#endif /* !MIN_VERSION_base(4,11,0) */
 import Control.Monad.Fix (MonadFix(..))
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Trans.Class (MonadTrans(..))
@@ -90,9 +81,6 @@ import Control.Monad.Trans.Writer.Lazy as Lazy (WriterT(..),
 import Control.Monad.Trans.Writer.Strict as Strict (WriterT(..),
                                                     mapWriterT,
                                                     runWriterT)
-#if !MIN_VERSION_base(4,8,0)
-import Data.Monoid (Monoid)
-#endif /* !MIN_VERSION_base(4,8,0) */
 import GHC.Conc.Sync (STM(..),
                       catchSTM,
                       throwSTM)
@@ -202,11 +190,7 @@ instance (Functor m) => Functor (ExceptionT m) where
     fmap f = ExceptionT . fmap (fmap f) . runExceptionT
 
 instance (Monad m) => Monad (ExceptionT m) where
-#if MIN_VERSION_base(4,8,0)
     return = pure
-#else /* !MIN_VERSION_base(4,8,0) */
-    return a = ExceptionT $ return (Right a)
-#endif /* !MIN_VERSION_base(4,8,0) */
 
     m >>= k = ExceptionT $ do
         a <- runExceptionT m
@@ -218,7 +202,7 @@ instance (Monad m) => Monad (ExceptionT m) where
     fail = Fail.fail
 #endif /* !MIN_VERSION_base(4,11,0) */
 
-instance (Monad m) => MonadFail (ExceptionT m) where
+instance (Monad m) => Fail.MonadFail (ExceptionT m) where
     fail msg = ExceptionT $ return (Left (E.toException (userError msg)))
 
 instance (Monad m) => MonadPlus (ExceptionT m) where
@@ -265,17 +249,8 @@ instance MonadException IO where
     throw   = E.throw
     finally = E.finally
 
-#if __GLASGOW_HASKELL__ >= 700
 instance MonadAsyncException IO where
     mask = E.mask
-#else /* __GLASGOW_HASKELL__ < 700 */
-instance MonadAsyncException IO where
-    mask act = do
-        b <- E.blocked
-        if b
-          then act id
-          else E.block $ act E.unblock
-#endif /* __GLASGOW_HASKELL__ < 700 */
 
 --
 -- Instances for the STM monad.
