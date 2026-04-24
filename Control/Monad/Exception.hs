@@ -1,8 +1,6 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE UnboxedTuples #-}
 {-# OPTIONS_GHC -fno-warn-warnings-deprecations #-}
 
 -- |
