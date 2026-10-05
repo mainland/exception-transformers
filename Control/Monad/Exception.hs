@@ -97,6 +97,30 @@ class (Monad m) => MonadException m where
     -- implementation of @finally@ for the transformed monad must guarantee that
     -- the final action is also always performed when any short-circuiting
     -- occurs.
+    --
+    -- The @IdentityT@, @ReaderT@, and @ListT@ instances delegate to the
+    -- underlying monad's @finally@ and inherit its behavior, including its
+    -- masking. The final computation runs after the underlying monad
+    -- short-circuits only if the underlying @finally@ runs it then, as the
+    -- @ExceptT@ and @MaybeT@ instances do and the default definition does not.
+    -- The final computation runs once for each @ListT@ computation, and the
+    -- @ListT@ instance discards its results, so a final computation that
+    -- produces @[]@ or several results does not change the result. A short
+    -- circuit in the final computation from the underlying monad, such as
+    -- @Left@ from @ExceptT@ or @Nothing@ from @MaybeT@, does not change the
+    -- result either when the underlying @finally@ discards it, as the
+    -- @ExceptT@ and @MaybeT@ instances do.
+    --
+    -- The state, writer, and RWS transformers use the default definition.
+    -- After the computation succeeds, the final computation runs in its
+    -- resulting state, and the final computation's state and output are kept.
+    -- After an exception, the final computation runs in the state at entry,
+    -- and its state and output are discarded when the exception is rethrown.
+    -- The default does not run the final computation when the underlying monad
+    -- short-circuits without raising an exception, as @ExceptT@ does, and it
+    -- does not mask asynchronous exceptions. Use 'bracket_' for masking. Use
+    -- @generalBracket@ from the @exceptions@ package when such a stack needs
+    -- cleanup after a short circuit.
     finally :: m a  -- ^ The computation to run
             -> m b  -- ^ Computation to run afterward (even if an exception was
                     -- raised)
@@ -285,11 +309,17 @@ instance (MonadException m) =>
     throw       = lift . throw
     m `catch` h = mapIdentityT (\m' -> m' `catch` \e -> runIdentityT (h e)) m
 
+    act `finally` sequel =
+        mapIdentityT (\act' -> act' `finally` runIdentityT sequel) act
+
 #if !MIN_VERSION_transformers(0,6,0)
 instance MonadException m =>
     MonadException (ListT m) where
     throw       = lift . throw
     m `catch` h = mapListT (\m' -> m' `catch` \e -> runListT (h e)) m
+
+    act `finally` sequel =
+        mapListT (\act' -> act' `finally` runListT sequel) act
 #endif /* !MIN_VERSION_transformers(0,6,0) */
 
 instance (MonadException m) =>
@@ -317,6 +347,9 @@ instance (MonadException m) =>
     throw       = lift . throw
     m `catch` h = ReaderT $ \r ->
                   runReaderT m r `catch` \e -> runReaderT (h e) r
+
+    act `finally` sequel = ReaderT $ \r ->
+        runReaderT act r `finally` runReaderT sequel r
 
 instance (MonadException m) =>
     MonadException (Lazy.StateT s m) where
