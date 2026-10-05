@@ -10,10 +10,6 @@
 
 module Main where
 
-#if defined(__GLASGOW_HASKELL__) && (__GLASGOW_HASKELL__ < 706)
-import Prelude hiding (catch)
-#endif
-
 import Control.Monad.Exception
 #if !MIN_VERSION_transformers(0,6,0)
 import Control.Monad.Trans.Error
