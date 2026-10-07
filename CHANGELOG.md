@@ -20,6 +20,7 @@
   state and output. Cleanup does not run when the underlying monad
   short-circuits without raising an exception. The `exceptions` package
   provides `generalBracket` for stacks that need that cleanup.
+- Mark the package as superseded by `exceptions`.
 - Drop GHC 7.x and add GHC 9.8, 9.10, 9.12, and 9.14 to the tested compilers.
   Test with the latest patch release of each GHC series from 8.0 through 9.14.
 - Require `base >= 4.9` and `transformers >= 0.5`, matching the supported GHC

@@ -15,6 +15,10 @@ description:    This package provides type classes, a monad and a monad
                 transformer that support unchecked extensible exceptions as
                 well as asynchronous exceptions. It is compatible with
                 the transformers package.
+                .
+                The @exceptions@ package supersedes this package, and new code
+                should use it. This package remains maintained for existing
+                users.
 tested-with:    GHC==8.0.2,
                 GHC==8.2.2,
                 GHC==8.4.4,
