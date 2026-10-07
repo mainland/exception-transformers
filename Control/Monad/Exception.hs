@@ -9,6 +9,15 @@
 --                (c) Geoffrey Mainland 2011-2026
 -- License     :  BSD-style
 -- Maintainer  :  mainland@drexel.edu
+--
+-- Classes for monads that throw and catch extensible exceptions, with
+-- instances for @IO@, @STM@, and the monad transformers from the
+-- @transformers@ package, and the @ExceptionT@ monad transformer.
+--
+-- The @exceptions@ package supersedes this package, and new code should use
+-- it. Its @MonadThrow@, @MonadCatch@, and @MonadMask@ classes replace
+-- 'MonadException' and 'MonadAsyncException', and its @CatchT@ replaces
+-- @ExceptionT@.
 
 module Control.Monad.Exception (
     E.Exception(..),
@@ -83,6 +92,8 @@ import GHC.Conc.Sync (STM(..),
                       catchSTM,
                       throwSTM)
 
+-- | Monads that can throw and catch unchecked extensible exceptions. The type
+-- of a computation does not record which exceptions it can raise.
 class (Monad m) => MonadException m where
     -- | Throw an exception.
     throw :: E.Exception e => e -> m a
@@ -139,6 +150,8 @@ onException :: MonadException m
 onException act what =
     act `catch` \(e :: E.SomeException) -> what >> throw e
 
+-- | Monads that can mask asynchronous exceptions. 'bracket' uses masking to
+-- ensure that it releases the resources it acquires.
 class (MonadIO m, MonadException m) => MonadAsyncException m where
     -- | Executes a computation with asynchronous exceptions /masked/. The
     -- argument passed to 'mask' is a function that takes as its argument
@@ -176,16 +189,20 @@ bracket_ before after thing =
 -- The ExceptionT monad transformer.
 --
 
+-- | A monad transformer that adds exceptions to any monad. A computation
+-- produces 'Left' with the exception it raised or 'Right' with its result.
+-- 'liftIO' also catches exceptions raised by the lifted 'IO' action.
 newtype ExceptionT m a =
     ExceptionT { runExceptionT :: m (Either E.SomeException a) }
 
+-- | Transform the computation inside an @ExceptionT@.
 mapExceptionT :: (m (Either E.SomeException a) -> n (Either E.SomeException b))
               -> ExceptionT m a
               -> ExceptionT n b
 mapExceptionT f = ExceptionT . f . runExceptionT
 
 -- | Lift the result of running a computation in a monad transformed by
--- 'ExceptionT' into another monad that supports exceptions.
+-- @ExceptionT@ into another monad that supports exceptions.
 liftException :: MonadException m => Either E.SomeException a -> m a
 liftException (Left e)  = throw e
 liftException (Right a) = return a
