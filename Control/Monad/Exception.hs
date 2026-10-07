@@ -6,9 +6,9 @@
 -- |
 -- Module      :  Control.Monad.Exception
 -- Copyright   :  (c) Harvard University 2008-2011
---                (c) Geoffrey Mainland 2011-2021
+--                (c) Geoffrey Mainland 2011-2026
 -- License     :  BSD-style
--- Maintainer  :  mainland@cs.drexel.edu
+-- Maintainer  :  mainland@drexel.edu
 
 module Control.Monad.Exception (
     E.Exception(..),

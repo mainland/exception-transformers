@@ -4,9 +4,9 @@
 
 -- |
 -- Module      :  Main
--- Copyright   :  (c) Geoffrey Mainland 2011-2014
+-- Copyright   :  (c) Geoffrey Mainland 2011-2026
 -- License     :  BSD-style
--- Maintainer  :  mainland@cs.drexel.edu
+-- Maintainer  :  mainland@drexel.edu
 
 module Main where
 

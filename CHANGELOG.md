@@ -28,3 +28,5 @@
   compatibility code for older compilers.
 - Use HTTPS for the source repository and include the README and changelog in
   source distributions.
+- Update the maintainer address in module headers and link the package
+  homepage.
