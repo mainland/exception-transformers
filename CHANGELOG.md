@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.4.0.13
+
+- The restore function in `ExceptionT` now returns underlying exceptions as
+  `Left`, including asynchronous exceptions delivered as masking is restored.
+  This lets `bracket` and `bracket_` run cleanup when an exception is pending
+  at the end of acquisition or when a computation lifted with `lift` throws
+  during use.
+- Document that bracketed acquisition in `ListT` must return one resource.
+  Bracket each acquisition in the underlying monad when it branches.
 
 - Lift `finally` through `IdentityT`, `ReaderT`, and `ListT`, which now
   delegate to the underlying monad's `finally`. Cleanup runs when the
