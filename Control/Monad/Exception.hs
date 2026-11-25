@@ -192,6 +192,11 @@ bracket_ before after thing =
 -- | A monad transformer that adds exceptions to any monad. A computation
 -- produces 'Left' with the exception it raised or 'Right' with its result.
 -- 'liftIO' also catches exceptions raised by the lifted 'IO' action.
+--
+-- The restore function supplied by 'mask' also catches exceptions raised by
+-- the underlying monad during the restored computation, including pending
+-- asynchronous exceptions delivered when it restores the masking state. These
+-- exceptions become 'Left', so 'bracket' can perform cleanup.
 newtype ExceptionT m a =
     ExceptionT { runExceptionT :: m (Either E.SomeException a) }
 
@@ -277,7 +282,8 @@ instance (MonadIO m) => MonadIO (ExceptionT m) where
 
 instance (MonadAsyncException m) => MonadAsyncException (ExceptionT m) where
     mask act = ExceptionT $ mask $ \restore ->
-               runExceptionT $ act (mapExceptionT restore)
+        runExceptionT $ act $ mapExceptionT $ \m ->
+            restore m `catch` (return . Left)
 
 --
 -- Instances for the IO monad.

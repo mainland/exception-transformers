@@ -10,6 +10,7 @@
 
 module Main where
 
+import Control.Concurrent (forkIO, myThreadId, yield)
 import qualified Control.Exception as E
 import Control.Monad (void)
 import Control.Monad.Exception
@@ -32,6 +33,7 @@ import qualified Control.Monad.Trans.Writer.Strict as SW
 import Control.Monad.Trans.Except
 import Control.Monad.IO.Class
 import Data.IORef
+import GHC.Conc (BlockReason(..), ThreadStatus(..), threadStatus)
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit (Assertion, assertFailure, (@?=))
@@ -42,6 +44,7 @@ main = defaultMain tests
 tests :: [Test]
 tests = [ exceptTests
         , transformerTests
+        , exceptionTTests
 #if !MIN_VERSION_transformers(0,6,0)
         , errorTests
 #endif /* !MIN_VERSION_transformers(0,6,0) */
@@ -107,6 +110,53 @@ transformerTests = testGroup "Transformer cleanup"
     , discardedTests
     , statefulTests
     ]
+
+exceptionTTests :: Test
+exceptionTTests = testGroup "ExceptionT restoration"
+    [ testCase "pending asynchronous exception runs bracket cleanup" $ do
+        releases <- newIORef (0 :: Int)
+        let release = liftIO (modifyIORef' releases (+ 1))
+        result <- E.try (runExceptionT (bracket_ (liftIO queueInterrupt) release (return ())))
+        readIORef releases >>= (@?= 1)
+        case result of
+          Right (Left e)  -> E.fromException e @?= Just E.UserInterrupt
+          Right (Right _) -> assertFailure "the restored action succeeded"
+          Left e          -> assertFailure ("the exception escaped ExceptionT: " ++ show (e :: E.AsyncException))
+    , testCase "lifted underlying exception runs bracket cleanup" $ do
+        releases <- newIORef (0 :: Int)
+        let release = liftIO (modifyIORef' releases (+ 1))
+            action = lift (E.throwIO (E.ErrorCall "stop")) :: ExceptionT IO ()
+        result <- runExceptionT (bracket_ (return ()) release action)
+        readIORef releases >>= (@?= 1)
+        case result of
+          Left e  -> E.fromException e @?= Just (E.ErrorCall "stop")
+          Right _ -> assertFailure "the restored action succeeded"
+    , testCase "successful restoration keeps underlying state and output" $ do
+        let acquire = lift (SRWS.put (1 :: Int) >> SRWS.tell ["acquired"])
+            action = lift (SRWS.modify (+ 1) >> SRWS.tell ["used"])
+            release = lift (SRWS.modify (+ 1) >> SRWS.tell ["released"])
+        (result, state, output) <-
+            SRWS.runRWST (runExceptionT (bracket_ acquire release action)) () 0
+        case result of
+          Left e   -> assertFailure ("the restored action failed: " ++ show e)
+          Right () -> return ()
+        state @?= 3
+        output @?= ["acquired", "used", "released"]
+    ]
+  where
+    -- The acquire action is masked. Wait until throwTo has queued the
+    -- exception so it is already pending when the use action restores masking.
+    queueInterrupt = do
+        target <- myThreadId
+        sender <- forkIO (E.throwTo target E.UserInterrupt)
+        let wait = do
+                status <- threadStatus sender
+                case status of
+                  ThreadBlocked BlockedOnException -> return ()
+                  ThreadFinished                   -> assertFailure "the interrupt was delivered during acquisition"
+                  ThreadDied                       -> assertFailure "the interrupt sender died"
+                  _                                -> yield >> wait
+        wait
 
 -- Each runner except ListT's puts a transformer outside a short-circuiting
 -- ExceptT.
