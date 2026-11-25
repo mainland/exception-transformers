@@ -7,3 +7,10 @@ which GHC has included since version 8.10, supersedes this package, and new
 code should use it. Its `MonadThrow`, `MonadCatch`, and `MonadMask` classes
 replace `MonadException` and `MonadAsyncException`, and its `CatchT` replaces
 `ExceptionT`. This package remains maintained for existing users.
+
+## AI assistance
+
+All contributions included in releases through version `0.4.0.12` were made
+without AI assistance. AI tools were used in development, review, and release
+preparation after that version, through version `0.4.0.13`. The maintainer
+remains responsible for this release.
