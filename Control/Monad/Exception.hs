@@ -151,7 +151,7 @@ onException act what =
     act `catch` \(e :: E.SomeException) -> what >> throw e
 
 -- | Monads that can mask asynchronous exceptions. 'bracket' uses masking to
--- ensure that it releases the resources it acquires.
+-- protect resource acquisition and cleanup.
 class (MonadIO m, MonadException m) => MonadAsyncException m where
     -- | Executes a computation with asynchronous exceptions /masked/. The
     -- argument passed to 'mask' is a function that takes as its argument
@@ -159,12 +159,13 @@ class (MonadIO m, MonadException m) => MonadAsyncException m where
     -- state within the context of the masked computation.
     mask :: ((forall a. m a -> m a) -> m b) -> m b
 
--- | When you want to acquire a resource, do some work with it, and then release
--- the resource, it is a good idea to use 'bracket', because 'bracket' will
--- install the necessary exception handler to release the resource in the event
--- that an exception is raised during the computation.  If an exception is
--- raised, then 'bracket' will re-raise the exception (after performing the
--- release).
+-- | Acquire a resource, use it, and release it. If use raises an exception,
+-- 'bracket' runs release and rethrows the exception if release succeeds.
+--
+-- For @ListT@, acquisition must return a single result for this guarantee. If
+-- acquisition returns several resources, an exception while using an earlier
+-- resource can leave later resources unreleased. In @ListT IO@, bracket each
+-- allocation in the underlying @IO@ action.
 bracket :: MonadAsyncException m
         => m a         -- ^ computation to run first (\"acquire resource\")
         -> (a -> m b)  -- ^ computation to run last (\"release resource\")
@@ -175,8 +176,8 @@ bracket before after thing =
         a <- before
         restore (thing a) `finally` after a
 
--- | A variant of 'bracket' where the return value from the first computation is
--- not required.
+-- | A variant of 'bracket' that discards the result of acquisition. The same
+-- restriction on @ListT@ acquisition applies.
 bracket_ :: MonadAsyncException m
          => m a
          -> m b
